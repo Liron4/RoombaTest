@@ -1,0 +1,231 @@
+#VRML_SIM R2023b utf8
+
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/objects/floors/protos/RectangleArena.proto"
+EXTERNPROTO "https://raw.githubusercontent.com/cyberbotics/webots/R2023b/projects/appearances/protos/Parquetry.proto"
+
+PROTO RoombaRobot [
+  field SFVec3f    translation     0 0 0
+  field SFRotation rotation        0 0 1 0
+  field SFString   name            "RoombaRobot"
+  field SFColor    color           0.7 0.7 0.7
+  field SFString   controller      "my_controller"
+  field MFString   controllerArgs  []
+  field SFString   customData      ""
+  field SFBool     supervisor      FALSE
+  field SFBool     synchronization TRUE
+  field MFNode     extensionSlot   []
+]
+{
+  Robot {
+    translation IS translation
+    rotation IS rotation
+    name IS name
+    controller IS controller
+    controllerArgs IS controllerArgs
+    customData IS customData
+    supervisor IS supervisor
+    synchronization IS synchronization
+    
+    children [
+      # Main body (puck shape)
+      DEF BODY Shape {
+        appearance PBRAppearance {
+          baseColor IS color
+          metalness 0.3
+          roughness 0.7
+        }
+        geometry Cylinder {
+          height 0.09
+          radius 0.17
+          subdivision 24
+        }
+      }
+      
+      # Left wheel (positioned on left side of robot)
+      DEF LEFT_WHEEL HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0 1 0
+          anchor 0 0.15 -0.03
+        }
+        device [
+          RotationalMotor {
+            name "left_wheel_motor"
+            maxVelocity 10
+            maxTorque 10
+          }
+          PositionSensor {
+            name "left_wheel_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0 0.15 -0.03
+          rotation 1 0 0 1.5708
+          children [
+            DEF LEFT_WHEEL_SHAPE Shape {
+              appearance PBRAppearance {
+                baseColor 0.2 0.2 0.2
+                metalness 0.7
+                roughness 0.3
+              }
+              geometry Cylinder {
+                height 0.03
+                radius 0.04
+                subdivision 16
+              }
+            }
+          ]
+          boundingObject USE LEFT_WHEEL_SHAPE
+          physics Physics {
+            density -1
+            mass 0.08
+          }
+        }
+      }
+      
+      # Right wheel (positioned on right side of robot)
+      DEF RIGHT_WHEEL HingeJoint {
+        jointParameters HingeJointParameters {
+          axis 0 1 0
+          anchor 0 -0.15 -0.03
+        }
+        device [
+          RotationalMotor {
+            name "right_wheel_motor"
+            maxVelocity 10
+            maxTorque 10
+          }
+          PositionSensor {
+            name "right_wheel_sensor"
+          }
+        ]
+        endPoint Solid {
+          translation 0 -0.15 -0.03
+          rotation 1 0 0 1.5708
+          children [
+            DEF RIGHT_WHEEL_SHAPE Shape {
+              appearance PBRAppearance {
+                baseColor 0.2 0.2 0.2
+                metalness 0.7
+                roughness 0.3
+              }
+              geometry Cylinder {
+                height 0.03
+                radius 0.04
+                subdivision 16
+              }
+            }
+          ]
+          boundingObject USE RIGHT_WHEEL_SHAPE
+          physics Physics {
+            density -1
+            mass 0.08
+          }
+        }
+      }
+      
+      # Front caster wheel (support wheel, no motor control needed)
+      DEF CASTER_WHEEL Solid {
+        translation 0.14 0 -0.035
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.3 0.3 0.3
+              metalness 0.8
+              roughness 0.2
+            }
+            geometry Sphere {
+              radius 0.015
+              subdivision 3
+            }
+          }
+        ]
+        boundingObject Sphere {
+          radius 0.015
+        }
+        physics Physics {
+          density -1
+          mass 0.02
+        }
+      }
+      
+      # Front proximity sensor (minimal for obstacle detection)
+      DEF DS_FRONT DistanceSensor {
+        translation 0.16 0 0.05
+        rotation 0 0 1 0
+        children [
+          DEF SENSOR_SHAPE Shape {
+            appearance PBRAppearance {
+              baseColor 0.1 0.1 0.1
+              metalness 0.1
+              roughness 0.9
+            }
+            geometry Box {
+              size 0.01 0.01 0.01
+            }
+          }
+        ]
+        name "ds_front"
+        lookupTable [
+          0 0 0
+          1.5 1.5 0
+        ]
+        type "sonar"
+        numberOfRays 3
+      }
+      
+      # Front touch sensor (bump detection)
+      DEF TOUCH_FRONT TouchSensor {
+        translation 0.165 0 0.04
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0
+              metalness 0.1
+              roughness 0.9
+              transparency 0.5
+            }
+            geometry Box {
+              size 0.02 0.3 0.02
+            }
+          }
+        ]
+        name "touch_front"
+        boundingObject Box {
+          size 0.02 0.3 0.02
+        }
+        physics Physics {
+          density -1
+          mass 0.01
+        }
+      }
+      
+      # Compass for orientation
+      Compass {
+        name "compass"
+        translation 0 0 0.08
+      }
+      
+      # Gyro for angular velocity
+      Gyro {
+        name "gyro"
+        translation 0 0 0.08
+      }
+      
+      # Extension slot for additional sensors
+      Group {
+        children IS extensionSlot
+      }
+    ]
+    
+    boundingObject USE BODY
+    physics Physics {
+      density -1
+      mass 2.0
+      centerOfMass [0 0 0]
+      inertiaMatrix [
+        0.02 0.02 0.04
+        0 0 0
+      ]
+    }
+  }
+}
