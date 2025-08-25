@@ -125,26 +125,29 @@ PROTO RoombaRobot [
       
       # Front caster wheel (support wheel, no motor control needed)
       DEF CASTER_WHEEL Solid {
-        translation 0.14 0 -0.035
+        # positioned to create stable 3-point contact with main wheels
+        translation 0.13 0 -0.05
         children [
           Shape {
             appearance PBRAppearance {
-              baseColor 0.3 0.3 0.3
-              metalness 0.8
-              roughness 0.2
+              baseColor 0.4 0.4 0.4
+              metalness 0.6
+              roughness 0.4
             }
             geometry Sphere {
-              radius 0.015
-              subdivision 3
+              # smaller caster for realistic proportions
+              radius 0.02
+              subdivision 12
             }
           }
         ]
         boundingObject Sphere {
-          radius 0.015
+          radius 0.02
         }
         physics Physics {
           density -1
-          mass 0.02
+          # increased mass to help balance front/rear weight distribution
+          mass 0.08
         }
       }
       
@@ -221,7 +224,8 @@ PROTO RoombaRobot [
     physics Physics {
       density -1
       mass 2.0
-      centerOfMass [0 0 0]
+      # shift center of mass slightly forward to balance the robot
+      centerOfMass [0.02 0 0]
       inertiaMatrix [
         0.02 0.02 0.04
         0 0 0
